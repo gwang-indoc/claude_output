@@ -300,7 +300,7 @@
           } else if (event === 'done') {
             cursorEl.style.display = 'none';
             setStatus('done', `Done — stop reason: ${data.stop_reason}`);
-            tokenEl.textContent = `↑ ${data.input_tokens} in  ↓ ${data.output_tokens} out`;
+            tokenEl.textContent = `↑ ${data.input_tokens} in ↓ ${data.output_tokens} out`;
           } else if (event === 'error') {
             cursorEl.style.display = 'none';
             setStatus('error', `Error: ${data.message}`);
