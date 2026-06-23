@@ -1,66 +1,99 @@
-# Claude Code Session Monitor
+<div align="center">
 
-A local web app that shows Claude Code CLI session content — your input and Claude's
-output — in a browser in near-realtime, rendered as a readable chat. Browse all
-sessions across all projects, open several at once, and export any session to Markdown.
+# 🔭 Claude Code Session Monitor
 
-## How it works
+**Watch your Claude Code CLI sessions live in the browser.**
 
-Claude Code writes every session as an append-only JSONL transcript at
-`~/.claude/projects/<encoded-cwd>/<session-id>.jsonl`. This app tails those files and
-pushes new lines to the browser over a WebSocket. No hooks, no process instrumentation.
+Your input and Claude's output — streamed in near-realtime, rendered as a readable chat.
+Browse every session across every project, open several side by side, and export any of them to Markdown.
 
-```
-~/.claude/projects/*/*.jsonl  →  Node backend (Express + ws)  →  browser (vanilla JS)
-        tail + parse                history + live append            chat panels
-```
+<br>
 
-It reflects what is written to the transcript — not a per-keystroke/per-token mirror.
-Your prompt appears after you submit it; assistant text appears as Claude Code flushes
-it to disk (near-realtime, ~1s, possibly chunked). It is read-only.
+![Node](https://img.shields.io/badge/Node.js-18%2B-3c873a?logo=node.js&logoColor=white)
+![Stack](https://img.shields.io/badge/stack-Express%20%2B%20ws%20%2B%20vanilla%20JS-blue)
+![Tests](https://img.shields.io/badge/tests-16%20passing-success)
+![Bind](https://img.shields.io/badge/bind-localhost%20only-orange)
+![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
-## Requirements
+</div>
 
-- Node.js 18+ (developed on Node 25)
-- An existing `~/.claude/projects/` directory (created by using Claude Code)
+---
 
-## Install
+## ✨ Features
+
+| | |
+|---|---|
+| 🗂️ **All sessions** | Every session grouped by project, sorted by most recent activity |
+| 🟢 **Live badge** | Highlights sessions written to in the last 10 seconds |
+| 💬 **Readable chat** | User / assistant / tool bubbles, Markdown + syntax highlighting |
+| 🔽 **Collapsible tools** | Tool calls and results fold away until you want them |
+| 🪟 **Multi-session** | Open many panels at once — each updates independently |
+| 📤 **Markdown export** | Export a whole session, or tick checkboxes to export a subset |
+| 🔒 **Read-only & local** | Localhost-only bind, never writes back to your sessions |
+
+---
+
+## ⚡ Quick start
 
 ```bash
 npm install
-```
-
-## Run
-
-```bash
 npm start
 ```
 
-Then open http://127.0.0.1:4567
+Then open **http://127.0.0.1:4567** 🚀
 
-The server binds to localhost only. Set a different port with `PORT=5000 npm start`.
+> Use a different port with `PORT=5000 npm start`.
 
-## Usage
+---
 
-- **Sidebar** lists every session grouped by project, sorted by most recent activity.
-  A green **live** badge marks sessions written to in the last 10 seconds.
-- **Click a session** to open it as a chat panel. Open as many as you like — each
-  updates independently.
-- Messages render as chat bubbles: user prompts, assistant text (Markdown + syntax
-  highlighting), and collapsible tool calls / results.
-- **Export all** downloads the whole session as Markdown. Tick the per-message
-  checkboxes and use **Export selected** for a subset. (Thinking blocks are omitted
-  from exports.)
+## 🧠 How it works
 
-### See it live
+Claude Code writes every session as an append-only JSONL transcript at
+`~/.claude/projects/<encoded-cwd>/<session-id>.jsonl`. This app tails those files and
+pushes new lines to the browser over a WebSocket — **no hooks, no process instrumentation.**
+
+```
+  ~/.claude/projects/*/*.jsonl  ──►  Node backend (Express + ws)  ──►  browser (vanilla JS)
+         tail + parse                  history + live append              chat panels
+```
+
+> [!NOTE]
+> It reflects what is **written to the transcript** — not a per-keystroke / per-token mirror.
+> Your prompt appears after you submit it; assistant text appears as Claude Code flushes it to
+> disk (~1s, possibly chunked). It is strictly read-only.
+
+---
+
+## 🎬 See it live
 
 1. `npm start` and open the page.
 2. Start a Claude Code session in any project from your terminal.
-3. Find that session in the sidebar (it shows a `live` badge) and open it.
-4. Type a prompt in the CLI — within ~1s it appears in the browser, followed by
-   Claude's response as it streams to disk.
+3. Find that session in the sidebar — it shows a 🟢 **live** badge — and open it.
+4. Type a prompt in the CLI. Within ~1s it appears in the browser, followed by Claude's
+   response as it streams to disk.
 
-## Project layout
+---
+
+## 📦 Requirements
+
+- **Node.js 18+** (developed on Node 25)
+- An existing `~/.claude/projects/` directory (created the first time you use Claude Code)
+
+---
+
+## 📖 Usage
+
+- **Sidebar** — every session, grouped by project, newest first. 🟢 = live.
+- **Click a session** → opens a chat panel. Open as many as you like.
+- **Bubbles** — user prompts, assistant text (Markdown + highlighted code), and
+  collapsible tool calls / results.
+- **Export all** → downloads the whole session as Markdown.
+- **Export selected** → tick per-message checkboxes for a subset.
+  *(Thinking blocks are omitted from exports.)*
+
+---
+
+## 🗺️ Project layout
 
 ```
 src/
@@ -78,34 +111,49 @@ public/
 test/              node:test unit tests for the backend modules
 ```
 
-## API
+---
 
-- `GET /api/sessions` — grouped, sorted session index with live flags
-- `GET /api/session/:id` — full parsed history for one session
-- `POST /api/export` — body `{ sessionId, uuids? }` → Markdown download (omit `uuids`
-  for the whole session)
-- `WS /ws` — `{subscribe|unsubscribe, sessionId}`; server pushes `history`, `append`,
-  `error` messages
+## 🔌 API
 
-## Tests
+| Method | Route | Description |
+|--------|-------|-------------|
+| `GET`  | `/api/sessions` | Grouped, sorted session index with live flags |
+| `GET`  | `/api/session/:id` | Full parsed history for one session |
+| `POST` | `/api/export` | Body `{ sessionId, uuids? }` → Markdown download (omit `uuids` for the whole session) |
+| `WS`   | `/ws` | `{subscribe\|unsubscribe, sessionId}`; server pushes `history`, `append`, `error` |
+
+---
+
+## 🧪 Tests
 
 ```bash
 npm test
 ```
 
-Covers the parser, session index, exporter, and watcher (including the
-history→tail offset handoff).
+Covers the parser, session index, exporter, and watcher — including the
+history → tail offset handoff. **16 passing.**
 
-## Security & scope
+---
 
-- Binds to `127.0.0.1` only; no authentication.
-- Read-only — it never writes to transcripts or injects input.
-- Session ids are validated; file access cannot escape `~/.claude/projects/`.
+## 🔐 Security & scope
 
-## Known limitations
+- 🏠 Binds to `127.0.0.1` only; no authentication.
+- 👀 Read-only — never writes to transcripts or injects input.
+- 🛡️ Session ids are validated; file access cannot escape `~/.claude/projects/`.
 
-- Syntax highlighting is served from a self-contained highlight.js bundle covering the
-  common languages; uncommon languages fall back to unhighlighted code.
-- The project label in the sidebar is derived from the encoded directory name, which is
-  lossy for paths containing `_`, `.`, or `-` (display only — session loading is
-  unaffected).
+---
+
+## ⚠️ Known limitations
+
+- Syntax highlighting ships as a self-contained highlight.js bundle covering the common
+  languages; uncommon languages fall back to plain code.
+- The sidebar project label is derived from the encoded directory name, which is lossy
+  for paths containing `_`, `.`, or `-` *(display only — session loading is unaffected).*
+
+---
+
+<div align="center">
+
+Built for people who live in the terminal but like a window into it. 🪟
+
+</div>
