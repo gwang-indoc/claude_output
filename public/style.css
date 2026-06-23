@@ -10,7 +10,7 @@ body { margin: 0; font-family: -apple-system, system-ui, sans-serif; background:
 .session-item:hover { background: #2a2a2a; }
 .live-badge { background: #2ea043; color: #fff; font-size: 10px; padding: 1px 6px; border-radius: 8px; }
 
-.panel { width: 480px; flex: none; display: flex; flex-direction: column; border: 1px solid #333; border-radius: 6px; overflow: hidden; }
+.panel { flex: 1 1 0; min-width: 560px; display: flex; flex-direction: column; border: 1px solid #333; border-radius: 6px; overflow: hidden; }
 .panel-header { display: flex; align-items: center; gap: 6px; padding: 6px 8px; background: #252525; border-bottom: 1px solid #333; }
 .panel-title { font-family: monospace; flex: 1; }
 .panel-header button { background: #333; color: #ddd; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; }
