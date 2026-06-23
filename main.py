@@ -8,7 +8,9 @@ Exposes two endpoints:
 """
 
 import json
+import logging
 import os
+from pathlib import Path
 from typing import AsyncIterator
 
 import anthropic
@@ -16,6 +18,10 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse, StreamingResponse
 from pydantic import BaseModel
+
+logger = logging.getLogger(__name__)
+
+_STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 load_dotenv()
 
@@ -59,8 +65,12 @@ async def _sse_generator(request: PromptRequest) -> AsyncIterator[str]:
                     "stop_reason": message.stop_reason,
                 },
             )
-    except anthropic.APIError as exc:
-        yield _sse_event("error", {"message": str(exc)})
+    except anthropic.APIStatusError as exc:
+        yield _sse_event("error", {"message": f"API error {exc.status_code}"})
+    except anthropic.APIConnectionError:
+        yield _sse_event("error", {"message": "Connection to the Anthropic API failed"})
+    except anthropic.APIError:
+        yield _sse_event("error", {"message": "An error occurred while calling the Anthropic API"})
 
 
 def _sse_event(event: str, data: dict) -> str:
@@ -83,6 +93,10 @@ async def stream_response(request: PromptRequest) -> StreamingResponse:
 @app.get("/", response_class=HTMLResponse)
 async def index() -> str:
     """Serve the real-time viewer UI."""
-    html_path = os.path.join(os.path.dirname(__file__), "static", "index.html")
-    with open(html_path, encoding="utf-8") as f:
-        return f.read()
+    html_path = (_STATIC_DIR / "index.html").resolve()
+    if not html_path.is_relative_to(_STATIC_DIR):
+        raise HTTPException(status_code=403, detail="Forbidden")
+    try:
+        return html_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Frontend file not found")
