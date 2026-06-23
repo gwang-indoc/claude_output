@@ -1,6 +1,6 @@
 // public/render.js
 import { marked } from '/vendor/marked/marked.esm.js';
-import hljs from '/vendor/highlight-es/index.js';
+import hljs from '/vendor/highlight-es/highlight.js';
 
 function escapeHtml(s) {
   return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));

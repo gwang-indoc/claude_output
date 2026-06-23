@@ -29,6 +29,27 @@ test('emits append events for newly written complete lines', async () => {
   w.unwatch('s');
 });
 
+test('tails from a non-zero offset, emitting only lines appended after that offset', async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'csm-watch-'));
+  const file = path.join(dir, 's.jsonl');
+  // Write initial content that represents "history already sent to the client".
+  const initialLine = JSON.stringify({ type: 'user', uuid: 'u-init', message: { role: 'user', content: 'old' } }) + '\n';
+  await fs.writeFile(file, initialLine);
+  const L = Buffer.byteLength(initialLine); // exact byte length — mirrors buf.length in server.js
+  const w = new Watcher();
+  // Start watcher at offset L (simulates the post-history handoff).
+  await w.watch('s', file, L);
+  // Append a new line AFTER calling watch — the only line the watcher should see.
+  const newLine = JSON.stringify({ type: 'user', uuid: 'u-new', message: { role: 'user', content: 'fresh' } }) + '\n';
+  const got = waitFor(w, 'append', p => p.sessionId === 's' && p.messages.length > 0);
+  await fs.appendFile(file, newLine);
+  const payload = await got;
+  // Must contain only the new line, not the initial one.
+  assert.ok(payload.messages.some(m => m.uuid === 'u-new'), 'expected new message in append');
+  assert.ok(!payload.messages.some(m => m.uuid === 'u-init'), 'initial message must NOT appear in append');
+  w.unwatch('s');
+});
+
 test('buffers a partial line until its newline arrives', async () => {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'csm-watch-'));
   const file = path.join(dir, 's.jsonl');

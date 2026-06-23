@@ -77,7 +77,6 @@ app.use(express.static(path.join(ROOT, 'public')));
 // Serve vendored frontend libs.
 app.use('/vendor/marked', express.static(path.join(ROOT, 'node_modules/marked/lib')));
 app.use('/vendor/highlight', express.static(path.join(ROOT, 'node_modules/highlight.js/styles')));
-app.use('/vendor/highlight-es', express.static(path.join(ROOT, 'node_modules/highlight.js/es')));
 // Synthetic browser-compatible ESM highlight.js at the path render.js imports.
 // node_modules/highlight.js/es/ has no highlight.js file — the actual entry is index.js,
 // but that file only works in Node (it re-imports CJS lib/). This synthetic endpoint
@@ -137,11 +136,10 @@ wss.on('connection', (ws) => {
       if (subscriptions.has(id)) return;
       const file = await resolveSessionFile(id);
       if (!file) { ws.send(JSON.stringify({ type: 'error', sessionId: id, error: 'not found' })); return; }
-      const text = await fsp.readFile(file, 'utf8');
-      ws.send(JSON.stringify({ type: 'history', sessionId: id, messages: parseAll(text) }));
-      const { size } = await fsp.stat(file);
+      const buf = await fsp.readFile(file);
+      ws.send(JSON.stringify({ type: 'history', sessionId: id, messages: parseAll(buf.toString('utf8')) }));
       subscriptions.add(id);
-      await watcher.watch(id, file, size); // tail only new content past history
+      await watcher.watch(id, file, buf.length); // tail resumes exactly where history ended
     }
 
     if (msg.unsubscribe && subscriptions.has(msg.unsubscribe)) {

@@ -6,6 +6,9 @@ export const BASE_DIR = path.join(os.homedir(), '.claude', 'projects');
 
 // Decode an encoded project dir name back to its original cwd path.
 // Claude Code replaces path separators with '-', e.g. "-Users-gwang-foo".
+// NOTE: This is best-effort and display-only. Claude Code encodes '/', '_', and '.'
+// all as '-', so the decoded path is not guaranteed to match the real cwd. Session
+// resolution never relies on this function — it always uses the validated session id.
 export function decodeCwd(dirName) {
   return dirName.replace(/-/g, '/');
 }
